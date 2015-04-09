@@ -1,0 +1,74 @@
+<project name="CouesWhitetail" default="dist" basedir=".">
+	<description>Package everything needed to run CouesWhitetail contest info gathering.</description>
+	<!-- set global properties for this build -->
+	<property name="java.compile.version" value="1.6"/>
+	<property name="src" location="src"/>
+	<property name="lib" location="lib"/>
+	<property name="build" location="build"/>
+	<property name="dist"  location="dist"/>
+	<property name="deploy" location="/home/matthew/programs/coueswhitetail/"/>
+	<property name="version"  value="1.0"/>
+	<property name="resources"  location="resources"/>
+    <property name="scripts" location="${resources}/scripts"/>
+	<property name="appname" value="CouesWhitetailContests"/>
+	<property name="manifest.mainclass" value="com.javacowboy.cwt.contest.Application"/>
+	<property name="manifest.classpath" value="lib/commons-io-2.4.jar lib/jsoup-1.6.1.jar"/>
+	<property name="jar.file" value="${dist}/${appname}-${version}.jar"/>
+	<property name="zip.file" value="${dist}/${appname}.zip"/>
+    <property name="run.bat.file" value="run.bat"/>
+
+	<target name="init">
+		<!-- Create the time stamp -->
+		<tstamp/>
+		<!-- Create the build directory structure used by compile -->
+		<mkdir dir="${build}"/>
+	</target>
+
+	<path id="classpath">
+		<fileset dir="${lib}">
+			<include name="**/*.jar"/>
+		</fileset>
+	</path>
+
+	<target name="compile" depends="init" description="compile the source " >
+		<!-- Compile the java code from ${src} into ${build} -->
+		<javac source="${java.compile.version}" target="${java.compile.version}" 
+				srcdir="${src}" destdir="${build}" classpathref="classpath" debug="true"/>
+	</target>
+
+	<target name="jar" depends="compile" description="generate the jar" >
+		<!-- Create the distribution directory -->
+		<mkdir dir="${dist}/"/>
+
+		<!-- Put everything in ${build} into the EyeDeal-version.jar file -->
+		<jar jarfile="${jar.file}" basedir="${build}">
+			<manifest>
+				<attribute name="Main-Class" value="${manifest.mainclass}"/>
+				<attribute name="Class-Path" value="${manifest.classpath}"/>
+			</manifest>	
+		</jar>
+	</target>
+	
+	<target name="dist" depends="jar" description="create the zip">
+		<copy todir="${dist}/lib">
+			<fileset dir="${lib}"/>	
+		</copy>
+		<copy todir="${dist}/resources">
+			<fileset dir="${resources}"/>
+		</copy>
+        <copy todir="${dist}" file="${scripts}/${run.bat.file}" overwrite="true"/>
+		<zip basedir="${dist}" destfile="${zip.file}" excludes="**.zip"/>
+	</target>
+	
+	<target name="deploy">
+		<copy todir="${deploy}">
+			<fileset dir="${dist}" excludes="**.zip"/>
+		</copy>
+	</target>
+
+	<target name="clean" description="clean up" >
+		<!-- Delete the ${build} and ${dist} directory trees -->
+		<delete dir="${build}"/>
+		<delete dir="${dist}"/>
+	</target>
+</project>

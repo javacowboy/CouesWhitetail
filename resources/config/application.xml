@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <!-- Properties common to all contests -->
+	<entry key="forum.url">http://www.coueswhitetail.com/forums/index.php</entry>
+	<entry key="forum.topic.key">showtopic</entry>
+	<entry key="forum.topic.id">35433</entry> <!-- This value should change for each contest -->
+	<entry key="forum.page.key">st</entry>
+	<entry key="forum.posts.per.page">15</entry>
+	<entry key="html.dir">./html</entry>
+	<entry key="results.dir">./results</entry>
+	<entry key="results.filename">results.csv</entry>
+    <entry key="results.date.format">M/dd/yyyy H:mm</entry>
+    <!-- Properties for the score contest -->
+    <entry key="validation.min.score">85</entry>
+    <entry key="validation.max.score">160</entry>
+    <!-- Properties for the photo contest -->
+    <entry key="images.dir">./images</entry>
+</properties>

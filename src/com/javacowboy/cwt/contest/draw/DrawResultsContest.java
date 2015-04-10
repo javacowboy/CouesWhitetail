@@ -34,7 +34,7 @@ public class DrawResultsContest implements IContest {
         FileManager.init();
 		File htmlDir = new File(Constants.HTML_DIR);
 		//get all html pages
-		FileManager.allTopicPagesToFiles(Constants.getTopicUrl(Constants.FORUM_TOPIC_ID), htmlDir);
+		FileManager.allTopicPagesToFiles(Constants.getTopicUrl(Constants.FORUM_URL), htmlDir);
 		//convert from html to dtos
 		List<File> pages = FileManager.listFilesAlphaNumeric(htmlDir);
 		List<PostInfoDto> posts = new ArrayList<PostInfoDto>();

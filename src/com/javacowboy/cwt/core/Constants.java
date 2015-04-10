@@ -1,8 +1,13 @@
 package com.javacowboy.cwt.core;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.InvalidPropertiesFormatException;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -10,11 +15,12 @@ import java.util.logging.Logger;
 public class Constants {
 	
 	public static String propertiesFile = "resources/config/application.xml";
+	public static String userPropertiesFile = "resources/config/user.xml";
+	public static SimpleDateFormat INERNAL_DATE_FORMATTER = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
 	
 	//for getting pages from cwt.com
 	public static String FORUM_URL;
 	public static String FORUM_TOPIC_KEY;
-	public static int FORUM_TOPIC_ID;
 	public static String FORUM_PAGE_KEY;
 	public static int FORUM_POSTS_PER_PAGE;
 	//where to save the html to
@@ -28,6 +34,19 @@ public class Constants {
     public static int VALIDATION_MAX_SCORE;
     //images directory for photo contest
     public static String IMAGES_DIR;
+    
+    //property file keys
+    public static final String FORUM_URL_PROP_KEY = "forum.url";
+    public static final String FORUM_TOPIC_KEY_PROP_KEY = "forum.topic.key";
+    public static final String FORUM_PAGE_KEY_PROP_KEY = "forum.page.key";
+    public static final String FORUM_POSTS_PER_PAGE_PROP_KEY = "forum.posts.per.page";
+    public static final String HTML_DIR_PROP_KEY = "html.dir";
+    public static final String RESULTS_DIR_PROP_KEY = "results.dir";
+    public static final String RESULTS_FILENAME_PROP_KEY = "results.filename";
+    public static final String RESULTS_DATE_FORMAT_PROP_KEY = "results.date.format";
+    public static final String VALIDATION_MIN_SCORE_PROP_KEY = "validation.min.score";
+    public static final String VALIDATION_MAX_SCORE_PROP_KEY = "validation.max.score";
+    public static final String IMAGES_DIR_PROP_KEY = "images.dir";
 	
 	static final Logger logger = Logger.getLogger(Constants.class.getSimpleName());
 	
@@ -35,18 +54,23 @@ public class Constants {
 		try {
 			Properties properties = new Properties();
 			properties.loadFromXML(new FileInputStream(propertiesFile));
-			FORUM_URL = properties.getProperty("forum.url", null);
-			FORUM_TOPIC_KEY = properties.getProperty("forum.topic.key", null);
-			FORUM_TOPIC_ID = toInteger(properties, "forum.topic.id", null);
-			FORUM_PAGE_KEY = properties.getProperty("forum.page.key", null);
-			FORUM_POSTS_PER_PAGE = toInteger(properties, "forum.posts.per.page", 15);
-			HTML_DIR = properties.getProperty("html.dir", "./html");
-			RESULTS_DIR = properties.getProperty("results.dir", "./results");
-			RESULTS_FILENAME = properties.getProperty("results.filename", "results.csv");
-            RESULTS_DATE_FORMAT = properties.getProperty("results.date.format", "M/dd/yyyy H:mm");
-            VALIDATION_MIN_SCORE = toInteger(properties, "validation.min.score", 85);
-            VALIDATION_MAX_SCORE = toInteger(properties, "validation.max.score", 160);
-            IMAGES_DIR = properties.getProperty("images.dir", "./images");
+			File userPropFile = new File(userPropertiesFile);
+			if(userPropFile.exists()) {
+				Properties userProperties = new Properties();
+				userProperties.loadFromXML(new FileInputStream(userPropertiesFile));
+				properties.putAll(userProperties);
+			}
+			FORUM_URL = properties.getProperty(FORUM_URL_PROP_KEY, null);
+			FORUM_TOPIC_KEY = properties.getProperty(FORUM_TOPIC_KEY_PROP_KEY, null);
+			FORUM_PAGE_KEY = properties.getProperty(FORUM_PAGE_KEY_PROP_KEY, null);
+			FORUM_POSTS_PER_PAGE = toInteger(properties, FORUM_POSTS_PER_PAGE_PROP_KEY, 15);
+			HTML_DIR = properties.getProperty(HTML_DIR_PROP_KEY, "./html");
+			RESULTS_DIR = properties.getProperty(RESULTS_DIR_PROP_KEY, "./results");
+			RESULTS_FILENAME = properties.getProperty(RESULTS_FILENAME_PROP_KEY, "results.csv");
+            RESULTS_DATE_FORMAT = properties.getProperty(RESULTS_DATE_FORMAT_PROP_KEY, "M/dd/yyyy H:mm");
+            VALIDATION_MIN_SCORE = toInteger(properties, VALIDATION_MIN_SCORE_PROP_KEY, 85);
+            VALIDATION_MAX_SCORE = toInteger(properties, VALIDATION_MAX_SCORE_PROP_KEY, 160);
+            IMAGES_DIR = properties.getProperty(IMAGES_DIR_PROP_KEY, "./images");
 		} catch (FileNotFoundException e) {
 			logger.log(Level.SEVERE, "Properties file not found at: " + propertiesFile, e);
 		} catch (IOException e) {
@@ -54,8 +78,9 @@ public class Constants {
 		}
 	}
 	
-	public static String getTopicUrl(int topicId) {
-		return FORUM_URL + "?" + FORUM_TOPIC_KEY + "=" + topicId;
+	public static String getTopicUrl(String url) {
+//		return FORUM_URL + "?" + FORUM_TOPIC_KEY + "=" + topicId;
+		return url;
 	}
 	
 	protected static Integer toInteger(Properties properties, String name, Integer defaultValue) {
@@ -65,15 +90,17 @@ public class Constants {
 			return defaultValue;
 		}
 	}
-
-    /**
-     * A method to set the forum topic id and save it to the application.xml properties file.
-     * If you only want to change the topic id while the programs runs, do: Constants.FORUM_TOPIC_ID = 12345;
-     * @param topicId
-     */
-    public static void setForumTopicId(int topicId) {
-        Constants.FORUM_TOPIC_ID = topicId;
-        //TODO: save the change to the xml config file
-    }
+	
+	public static void saveUserProperty(String key, String value) throws InvalidPropertiesFormatException, FileNotFoundException, IOException {
+		Properties properties = new Properties();
+		File propFile = new File(userPropertiesFile);
+		if(propFile.exists()) {
+			properties.loadFromXML(new FileInputStream(propFile));
+		}
+		properties.put(key, value);
+		Date today = new Date();
+		String comment = "User properties that override the defaults.  Last modified: " + INERNAL_DATE_FORMATTER.format(today);
+		properties.storeToXML(new FileOutputStream(propFile), comment);
+	}
 
 }

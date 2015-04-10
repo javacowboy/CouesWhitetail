@@ -45,11 +45,15 @@ public class Application {
 	        		throw new UnsupportedOperationException("This contest is not yet implemented.");
 	        	}
 	        	//ask for the topic id or use the one in the xml config file
-	        	promptForTopicId();
+	        	promptForTopicUrl();
 	        	scanner = new Scanner(System.in);
 	        	topicString = scanner.nextLine();
 	        	if(topicString != null && !topicString.trim().isEmpty()) {
-	        		Constants.FORUM_TOPIC_ID = Integer.parseInt(topicString);
+	        		if(!topicString.startsWith("http")) {
+	        			throw new IllegalArgumentException("Please enter the full url including http://www.coueswhitetail.com/");
+	        		}
+	        		Constants.FORUM_URL = topicString;
+	        		Constants.saveUserProperty(Constants.FORUM_URL_PROP_KEY, topicString);
 	        	}
 	        		        	
 	        	//run the contest
@@ -64,12 +68,11 @@ public class Application {
         }
     }
 
-    private void promptForTopicId() {
+    private void promptForTopicUrl() {
 		System.out.println();
-		System.out.println("Please enter a topic id or leave it blank to use the value in the xml configuration file.");
-		System.out.println("The topic id can be found in the url/address of the forum page.  The topic id comes after " + Constants.FORUM_TOPIC_KEY + "=");
-		System.out.println("Example: " + Constants.getTopicUrl(Constants.FORUM_TOPIC_ID));
-		System.out.print("[" + Constants.FORUM_TOPIC_ID + "]: ");
+		System.out.println("Please enter a topic url or leave it blank to use the value in the xml configuration file.");
+		System.out.println("Example: " + Constants.getTopicUrl(Constants.FORUM_URL));
+		System.out.print("[" + Constants.FORUM_URL + "]: ");
 	}
 
 	private boolean validSelection(Integer selection) {

@@ -14,7 +14,7 @@
 	<property name="manifest.mainclass" value="com.javacowboy.cwt.contest.Application"/>
 	<property name="manifest.classpath" value="lib/commons-io-2.4.jar lib/jsoup-1.6.1.jar"/>
 	<property name="jar.file" value="${dist}/${appname}-${version}.jar"/>
-	<property name="zip.file" value="${dist}/${appname}.zip"/>
+	<property name="zip.file" value="${dist}/${appname}-${version}.zip"/>
     <property name="run.bat.file" value="run.bat"/>
 
 	<target name="init">
@@ -49,7 +49,7 @@
 		</jar>
 	</target>
 	
-	<target name="dist" depends="jar" description="create the zip">
+	<target name="dist" depends="clean, jar" description="create the zip">
 		<copy todir="${dist}/lib">
 			<fileset dir="${lib}"/>	
 		</copy>

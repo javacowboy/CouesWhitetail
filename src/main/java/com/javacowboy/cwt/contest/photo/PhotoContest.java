@@ -32,7 +32,7 @@ public class PhotoContest implements IContest {
         init();
         File htmlDir = new File(Constants.HTML_DIR);
         //get all html pages
-        FileManager.allTopicPagesToFiles(Constants.getTopicUrl(Constants.FORUM_URL), htmlDir);
+        FileManager.allTopicPagesToFiles(Constants.FORUM_URL, htmlDir);
         //convert from html to dtos
         List<File> pages = FileManager.listFilesAlphaNumeric(htmlDir);
         List<PostInfoDto> posts = new ArrayList<PostInfoDto>();

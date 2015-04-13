@@ -2,8 +2,7 @@
 <!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
 <properties>
     <!-- Properties common to all contests -->
-	<entry key="forum.url">http://www.coueswhitetail.com/forums/index.php</entry>
-	<entry key="forum.topic.key">showtopic</entry>
+	<entry key="forum.base.url">http://www.coueswhitetail.com/forums/topic/</entry>
 	<entry key="forum.topic.id">35433</entry> <!-- This value should change for each contest -->
 	<entry key="forum.page.key">st</entry>
 	<entry key="forum.posts.per.page">15</entry>

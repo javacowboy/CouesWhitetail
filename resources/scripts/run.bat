@@ -1,3 +1,3 @@
 echo off
-call java -jar CouesWhitetailContests-1.1.jar
+call java -jar CouesWhitetailContests-1.2.jar
 pause

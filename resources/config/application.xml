@@ -2,9 +2,8 @@
 <!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
 <properties>
     <!-- Properties common to all contests -->
-	<entry key="forum.base.url">http://www.coueswhitetail.com/forums/topic/</entry>
-	<entry key="forum.topic.id">35433</entry> <!-- This value should change for each contest -->
-	<entry key="forum.page.key">st</entry>
+	<entry key="forum.topic.url">http://www.coueswhitetail.com/forums/topic/69243-2016-trail-camera-photo-and-video-contest/</entry> <!-- This value should change for each contest -->
+	<entry key="forum.page.key">page</entry>
 	<entry key="forum.posts.per.page">15</entry>
 	<entry key="html.dir">./html</entry>
 	<entry key="results.dir">./results</entry>

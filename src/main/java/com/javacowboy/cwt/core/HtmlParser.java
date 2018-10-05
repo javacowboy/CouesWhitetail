@@ -6,7 +6,6 @@ import java.nio.charset.Charset;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -21,15 +20,14 @@ import org.jsoup.select.Elements;
 
 public class HtmlParser {
 	
-	static final String POST_TIME_FORMAT = "h:mm a"; //To handle the case of: Posted Today, 12:03 PM
-	static final String POST_DATE_FORMAT = "MMMM dd yyyy - " + POST_TIME_FORMAT; //Posted September 25 2012 - 09:10 AM
-	static final SimpleDateFormat postTimeFormat = new SimpleDateFormat(POST_TIME_FORMAT);
+	static final String POST_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss'Z'"; //2016-10-19T20:47:19Z
     static final SimpleDateFormat postDateFormat = new SimpleDateFormat(POST_DATE_FORMAT);
     
 	static final Logger logger = Logger.getLogger(HtmlParser.class.getSimpleName());
 	
 	//
 	static final Map<String, Integer> userPostCountMap = new HashMap<String, Integer>();
+	protected static int postCounter = 0;
 	
 	/**
 	 * A method that determines how many total post pages there are by parsing one of the html pages.
@@ -39,8 +37,20 @@ public class HtmlParser {
 	public static int getTotalNumberOfPages(File htmlFile) {
 		try {
 			String pageText = getPageInfo(htmlFile);//Page 1 of 6
-			String[] values = pageText.split(" ");
-			String value = values[values.length -1];
+			String[] values = pageText.trim().split(" ");
+			//TODO: jsoup parses &nbsp; to a weird space character that isn't replaced with .trim()
+			String value = "";
+			boolean next = false;
+			for(String v : values) {
+				if(next) {
+					value = v;
+					break;
+				}
+				if("of".equals(v)) {
+					next = true;
+					continue;
+				}
+			}
 			return Integer.valueOf(value);
 		} catch (NumberFormatException e) {
 			logger.log(Level.SEVERE, "Error getting total number of pages.", e);
@@ -57,12 +67,31 @@ public class HtmlParser {
 		try {
 			String pageText = getPageInfo(htmlFile);//Page 1 of 6
 			String[] values = pageText.split(" ");
-			String value = values[values.length -3];
+			//TODO: jsoup parses &nbsp; to a weird space character that isn't replaced with .trim()
+			String value = "";
+			boolean next = false;
+			for(int i=values.length-1; i>0; i--) {
+				if(next) {
+					value = values[i];
+					break;
+				}
+				if("of".equals(values[i])) {
+					next = true;
+					continue;
+				}
+			}
 			return Integer.valueOf(value);
 		} catch (NumberFormatException e) {
-			logger.log(Level.SEVERE, "Error getting total number of pages.", e);
+			logger.log(Level.SEVERE, "Error getting current page number.", e);
 		}
 		return -1;
+	}
+	
+	public static String getUserName(Element element) {
+		//TODO: jsoup parses &nbsp; to a weird space character that isn't replaced with .trim()
+		String username = parseForTagClass(TagClass.USER_NAME, element);
+		String[] parts = username.split(" ");
+		return parts[0];
 	}
 	
 	/**
@@ -72,7 +101,7 @@ public class HtmlParser {
 	 */
 	static String getPageInfo(File htmlFile) {
 		try {
-			Document doc = Jsoup.parse(htmlFile, Charset.defaultCharset().name());
+			Document doc = Jsoup.parse(htmlFile, "UTF-8");
 			Elements results = doc.getElementsByClass(TagClass.TOTAL_PAGES.getName());
 			return results.first().text();
 		} catch (IOException e) {
@@ -95,9 +124,9 @@ public class HtmlParser {
 			for(Element element : userPosts) {
 				PostInfoDto dto = new PostInfoDto();
 				dto.setPageNumber(pageNumber);
-				dto.setUserName(parseForTagAttribute(TagAttribute.USER_NAME, element));
+				dto.setUserName(getUserName(element));
 				dto.setPostDate(parseForPostDate(element));
-				dto.setPostNumber(parseForIntegerTagAttribute(TagAttribute.POST_NUMBER, element));
+				dto.setPostNumber(getPostNumber());
 				dto.setUserPostNumber(getUserPostNumber(dto.getUserName()));
 				dto.setPostContent(parseForPostContent(element));
 				logger.info("Parsed post info for: " + dto.getUserName());
@@ -109,6 +138,11 @@ public class HtmlParser {
 		}
 		
 		return list;
+	}
+	
+	protected static int getPostNumber() {
+		postCounter++;
+		return postCounter;
 	}
 	
 	protected static int getUserPostNumber(String userName) {
@@ -125,43 +159,22 @@ public class HtmlParser {
 		// Need to ignore quoted text, or quoted comments from previous users
 		Elements results = element.getElementsByAttributeValue(TagAttribute.POST_TEXT.getKey(), TagAttribute.POST_TEXT.getValue());
 		Element content = results.first();
-		removeChildElementsByClass(TagClass.QUOTE_CITATION, content);
-		removeChildElementsByClass(TagClass.QUOTE_TEXT, content);
+		removeChildElementsByTagName(TagName.blockquote, content);
 		return content.text();
 	}
 
-	protected static void removeChildElementsByClass(TagClass tagClass, Element element) {
-		Elements results = element.getElementsByClass(tagClass.getName());
+	protected static void removeChildElementsByTagName(TagName tagName, Element element) {
+		Elements results = element.getElementsByTag(tagName.name());
 		for(Element result : results) {
 			result.remove();
 		}
 	}
 
-	@SuppressWarnings("deprecation")
 	protected static Date parseForPostDate(Element element) {
 		try {
-			String value = parseForTagAttribute(TagAttribute.POST_TIME, element);
-            //Today, 11:40 PM
-			if(value.toLowerCase().contains("today")) {
-				value = value.substring(value.indexOf(",") + 1).trim();
-				Date time = postTimeFormat.parse(value);
-				Date today = new Date();
-				today.setHours(time.getHours());
-				today.setMinutes(time.getMinutes());
-				return today;
-            //Yesterday, 11:40 PM
-            }else if (value.toLowerCase().contains("yesterday")) {
-                value = value.substring(value.indexOf(",") + 1).trim();
-                Date time = postTimeFormat.parse(value);
-                Calendar cal = Calendar.getInstance();
-                cal.add(Calendar.DATE, -1);
-                Date yesterday = cal.getTime();
-                yesterday.setHours(time.getHours());
-                yesterday.setMinutes(time.getMinutes());
-                return yesterday;
-			}else {
-				return postDateFormat.parse(value);
-			}
+			Element time = element.getElementsByTag(TagName.time.name()).first();
+			String value = time.attr(TagAttribute.POST_TIME.getKey());
+			return postDateFormat.parse(value);
 		} catch (ParseException e) {
 			logger.log(Level.SEVERE, "Error getting post date and time.", e);
 		}
@@ -183,18 +196,35 @@ public class HtmlParser {
 		Elements results = element.getElementsByAttributeValue(attribute.getKey(), attribute.getValue());
 		return results.first().text();
 	}
+	
+	protected static String parseForTagClass(TagClass tagClass, Element element) {
+		Elements results = element.getElementsByClass(tagClass.getName());
+		return results.first().text();
+	}
+	
+	protected static String parseForTagName(TagName tagName, Element element) {
+		Elements results = element.getElementsByTag(tagName.name());
+		return results.first().text();
+	}
+	
+	/*
+	 * An enum used to track the html element name used for finding an element.
+	 */
+	public enum TagName {
+		time, blockquote;
+	}
 
 	/*
 	 * An enum used to track the html element class name used for finding an element.
 	 */
 	public enum TagClass {
 		//example: <li class="pagejump clickable pj0228983001" id="anonymous_element_1"> ... Page 6 of 6 ... </li>
-		TOTAL_PAGES("pagejump"),
-		USER_POST("post_block"),
-		QUOTE_CITATION("citation"),
-		QUOTE_TEXT("blockquote"),
-        PHOTO_LINK("resized_img"), //the <a> tag
-        PHOTO_IMG("attach"); //the <img> tag inside the <a>
+		TOTAL_PAGES("ipsPagination_pageJump"),
+		USER_POST("cPost"),
+		USER_NAME("cAuthorPane_author"),
+        PHOTO_LINK("ipsAttachLink"), //the <a> tag
+        PHOTO_IMG("ipsImage"), //the <img> tag inside the <a>
+        MOVIE_LINK("ipsEmbeddedVideo");
 		
 		private String name;
 
@@ -213,11 +243,10 @@ public class HtmlParser {
 	 */
 	public enum TagAttribute {
 		//example: <span itemprop="name">Santana Outdoors</span>
-		USER_NAME("itemprop", "name"),
-		POST_TIME("itemprop", "commentTime"),
-		POST_NUMBER("itemprop", "replyToUrl"),
-		POST_TEXT("itemprop", "commentText"),
-		MOVIE_LINK("name", "movie");
+		//<time datetime="2016-10-19T20:47:19Z">October 19, 2016</time>
+		POST_TIME("datetime", ""),
+//		POST_NUMBER("itemprop", "replyToUrl"),
+		POST_TEXT("data-role", "commentContent");
 		
 		private String key;
 		private String value;

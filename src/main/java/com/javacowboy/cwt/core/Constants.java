@@ -20,8 +20,7 @@ public class Constants {
 	
 	//for getting pages from cwt.com
 	public static String FORUM_URL;
-	public static String FORUM_BASE_URL;
-	public static String FORUM_TOPIC_ID;
+	public static String FORUM_TOPIC_URL;
 	public static String FORUM_PAGE_KEY;
 	public static int FORUM_POSTS_PER_PAGE;
 	//where to save the html to
@@ -38,8 +37,7 @@ public class Constants {
     
     //property file keys
     public static final String FORUM_URL_PROP_KEY = "forum.url";
-    public static final String FORUM_BASE_URL_PROP_KEY = "forum.base.url";
-    public static final String FORUM_TOPIC_ID_PROP_KEY = "forum.topic.id";
+    public static final String FORUM_TOPIC_URL_PROP_KEY = "forum.topic.url";
     public static final String FORUM_PAGE_KEY_PROP_KEY = "forum.page.key";
     public static final String FORUM_POSTS_PER_PAGE_PROP_KEY = "forum.posts.per.page";
     public static final String HTML_DIR_PROP_KEY = "html.dir";
@@ -62,8 +60,7 @@ public class Constants {
 				userProperties.loadFromXML(new FileInputStream(userPropertiesFile));
 				properties.putAll(userProperties);
 			}
-			FORUM_BASE_URL = properties.getProperty(FORUM_BASE_URL_PROP_KEY, null);
-			FORUM_TOPIC_ID = properties.getProperty(FORUM_TOPIC_ID_PROP_KEY, null);
+			FORUM_TOPIC_URL = properties.getProperty(FORUM_TOPIC_URL_PROP_KEY, null);
 			FORUM_PAGE_KEY = properties.getProperty(FORUM_PAGE_KEY_PROP_KEY, null);
 			FORUM_POSTS_PER_PAGE = toInteger(properties, FORUM_POSTS_PER_PAGE_PROP_KEY, 15);
 			HTML_DIR = properties.getProperty(HTML_DIR_PROP_KEY, "./html");
@@ -81,7 +78,7 @@ public class Constants {
 	}
 	
 	public static String getExampleTopicUrl() {
-		return FORUM_BASE_URL + FORUM_TOPIC_ID;
+		return FORUM_TOPIC_URL;
 	}
 	
 	protected static Integer toInteger(Properties properties, String name, Integer defaultValue) {

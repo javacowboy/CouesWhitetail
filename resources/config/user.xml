@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
 <properties>
-<comment>User properties that override the defaults.  Last modified: 04/12/2015 21:45:35</comment>
-<entry key="forum.topic.id">56561</entry>
+<comment>User properties that override the defaults.  Last modified: 10/05/2018 07:55:07</comment>
+<entry key="forum.topic.id">69243</entry>
+<entry key="forum.topic.url">http://www.coueswhitetail.com/forums/topic/69243-2016-trail-camera-photo-and-video-contest/</entry>
 </properties>

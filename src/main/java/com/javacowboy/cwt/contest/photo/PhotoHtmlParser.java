@@ -1,13 +1,5 @@
 package com.javacowboy.cwt.contest.photo;
 
-import com.javacowboy.cwt.core.Constants;
-import com.javacowboy.cwt.core.FileManager;
-import com.javacowboy.cwt.core.HtmlParser;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -15,6 +7,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
+
+import com.javacowboy.cwt.core.Constants;
+import com.javacowboy.cwt.core.FileManager;
+import com.javacowboy.cwt.core.HtmlParser;
 
 /**
  * Created by IntelliJ IDEA.
@@ -39,13 +40,12 @@ public class PhotoHtmlParser extends HtmlParser {
             for(Element element : userPosts) {
                 PhotoPostInfoDto dto = new PhotoPostInfoDto();
                 dto.setPageNumber(pageNumber);
-                dto.setUserName(parseForTagAttribute(TagAttribute.USER_NAME, element));
+                dto.setUserName(getUserName(element));
                 dto.setPostDate(parseForPostDate(element));
-                dto.setPostNumber(parseForIntegerTagAttribute(TagAttribute.POST_NUMBER, element));
+                dto.setPostNumber(getPostNumber());
                 dto.setUserPostNumber(getUserPostNumber(dto.getUserName()));
                 dto.setPostContent(parseForPostContent(element));
                 //Here is where we get more info than the HtmlParser class does.
-                //Call parseForPostContent first as it also removes quoted posts.
                 getImages(dto, element);
                 logger.info("Parsed post info for: " + dto.getUserName());
                 list.add(dto);
@@ -74,14 +74,15 @@ public class PhotoHtmlParser extends HtmlParser {
             postInfo.getImages().add(imageInfo);
             counter++;
         }
-        //youtube videos
-        results = element.getElementsByAttributeValue(TagAttribute.MOVIE_LINK.getKey(), TagAttribute.MOVIE_LINK.getValue());
+        //youtube and vimeo videos
+        results = element.getElementsByClass(TagClass.MOVIE_LINK.getName());
         for(Element param : results) {
-        	VideoInfoDto videoInfo = new VideoInfoDto();
-        	videoInfo.setCategory(postInfo.getCategory());
-        	videoInfo.setUrl(param.attr("value"));
-        	videoInfo.setLocalFilename(pullDownVideo(postInfo, videoInfo, counter));
-        	postInfo.getVideos().add(videoInfo);
+	        	VideoInfoDto videoInfo = new VideoInfoDto();
+	        	videoInfo.setCategory(postInfo.getCategory());
+	        	Element iframe = param.getElementsByTag("iframe").first();
+	        	videoInfo.setUrl(iframe.attr("src"));
+	        	videoInfo.setLocalFilename(pullDownVideo(postInfo, videoInfo, counter));
+	        	postInfo.getVideos().add(videoInfo);
         }
         //amanda might have uploaded the video for another user
         if(postInfo.hasVideos()) {
@@ -94,8 +95,27 @@ public class PhotoHtmlParser extends HtmlParser {
     	String filename = buildFileName(postInfo, videoInfo, counter);
     	File outDir = new File(Constants.IMAGES_DIR, videoInfo.getCategory());
     	File outFile = new File(outDir, filename);
-    	FileManager.urlToFile(videoInfo.getUrl(), outFile);
+    	if(videoInfo.getUrl().toLowerCase().contains("youtube.com")) {
+    		String youtubeHtml = buildYoutubeHtml(videoInfo.getUrl());
+    		FileManager.stringToFile(youtubeHtml, outFile);
+    	}else {
+    		FileManager.urlToFile(videoInfo.getUrl(), outFile);
+    	}
     	return filename;
+	}
+
+	private static String buildYoutubeHtml(String url) {
+		//<meta http-equiv="refresh" content="0; URL='https://youtube.com/someurl'" />
+		StringBuilder builder = new StringBuilder();
+		builder.append("<html>")
+		.append("<head>")
+		.append("<meta http-equiv=\"refresh\" content=\"0; URL='").append(url).append("'\" />")
+		.append("</head>")
+		.append("<body>")
+		.append("<div>Redirect To YouTube</div>")
+		.append("</body>")
+		.append("</html>");
+		return builder.toString();
 	}
 
 	private static String pullDownImage(PhotoPostInfoDto postInfo, ImageInfoDto imageInfo, int counter) {

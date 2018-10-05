@@ -55,9 +55,9 @@ public class Application {
 	        	scanner = new Scanner(System.in);
 	        	topicString = scanner.nextLine();
 	        	if(topicString != null && !topicString.trim().isEmpty()) {
-	        		Constants.FORUM_URL = getForumUrl(topicString);
+	        		Constants.FORUM_URL = topicString;
 	        	}else {
-	        		Constants.FORUM_URL = getForumUrl(Constants.FORUM_TOPIC_ID);
+	        		Constants.FORUM_URL = Constants.FORUM_TOPIC_URL;
 	        	}
 	        	parseAndSaveTopicId(Constants.FORUM_URL);
 	        		        	
@@ -74,47 +74,10 @@ public class Application {
     }
     
     private void parseAndSaveTopicId(String url) throws InvalidPropertiesFormatException, FileNotFoundException, IOException {
-    	Integer topicId = parseTopicId(url);
-    	if(topicId != null) {
-    		Constants.saveUserProperty(Constants.FORUM_TOPIC_ID_PROP_KEY, topicId.toString());
-    	}
+	    	if(url != null) {
+	    		Constants.saveUserProperty(Constants.FORUM_TOPIC_URL_PROP_KEY, url);
+	    	}
     }
-
-    protected Integer parseTopicId(String url) {
-		// IN: http://www.coueswhitetail.com/forums/topic/56561-guess-the-score-of-this-white-mountain-apache-coues-buck/
-    	// OUT: 56561
-    	if(url != null) {
-    		url = url.replace(Constants.FORUM_BASE_URL, "");
-    		if(url.indexOf("-") > -1) {
-    			url = url.substring(0, url.indexOf("-"));
-    			try {
-    				return Integer.valueOf(url);
-    			}catch (NumberFormatException e) {
-    				//do nothing
-    			}
-    		}
-    	}
-		return null;
-	}
-
-	protected String getForumUrl(String topicString) throws MalformedURLException, IOException {
-		String url = "";
-		if(topicString.startsWith("http")) {
-			url = topicString;
-		}else {
-			try {
-				int topicId = Integer.parseInt(topicString);
-				//The forum url is http://www.coueswhitetail.com/forums/topic/{id}-some-title-text-here
-				//The page seems to resolve as long as we enter the id followed by a dash (-)
-				url = Constants.FORUM_BASE_URL + topicId + "-";
-			}catch (NumberFormatException e) {
-				throw new IllegalArgumentException("Please enter a valid topic id.");
-			}
-		}
-		url = validateUrl(url);
-		logger.info("Actual url: " + url);
-		return url;
-	}
 
 	protected String validateUrl(String url) throws MalformedURLException, IOException {
 		//the url needs to end with a / or the html doesn't include page numbers (navigation links)
@@ -130,9 +93,9 @@ public class Application {
 
 	private void promptForTopicUrl() {
 		System.out.println();
-		System.out.println("Please enter a topic id or leave it blank to use the previous topic id.  (A full url is also valid).");
+		System.out.println("Please enter a contest url or leave it blank to use the previous contest.");
 		System.out.println("Example: " + Constants.getExampleTopicUrl());
-		System.out.print("[" + Constants.FORUM_TOPIC_ID + "]: ");
+		System.out.print("[" + Constants.FORUM_TOPIC_URL + "]: ");
 	}
 
 	private boolean validSelection(Integer selection) {

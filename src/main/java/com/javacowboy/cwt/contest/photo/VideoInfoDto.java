@@ -8,7 +8,7 @@ public class VideoInfoDto {
 
 	//helper methods
 	public String getFileExtension() {
-		return ".swf";
+		return ".html";
 	}
 	
 	//getters and setters

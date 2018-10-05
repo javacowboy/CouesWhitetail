@@ -106,10 +106,22 @@ public class FileManager {
 		}
 	}
 	
+	/**
+	 * A method that saves a String to a File
+	 * @param data
+	 * @param outFile
+	 */
+	public static void stringToFile(String data, File outFile) {
+		try {
+			FileUtils.writeStringToFile(outFile, data, "UTF-8");
+		} catch (IOException e) {
+			logger.log(Level.SEVERE, "Couldn't save to file: " + outFile, e);
+		}
+	}
+	
 	private static String getNextPageUrl(String baseUrl, int currPage, int postsPerPage){
-		//page1 would be st=0; page2 is st=15 where 15 is postsPerPage
-		int offset = (currPage-1) * postsPerPage;
-		return baseUrl + "&" + Constants.FORUM_PAGE_KEY + "=" + offset;
+		int offset = (currPage);
+		return baseUrl + "?" + Constants.FORUM_PAGE_KEY + "=" + offset;
 	}
 	
 	private static String getHtmlFileName(String baseFileName, int pageNum) {
